@@ -1,0 +1,316 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scripts/test_track.gd" id="1_track"]
+[ext_resource type="Script" path="res://scripts/cat_racer.gd" id="2_cat"]
+[ext_resource type="Script" path="res://scripts/race_manager.gd" id="3_race"]
+[ext_resource type="Script" path="res://scripts/track_surface.gd" id="4_surface"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShapeTopBottom"]
+size = Vector2(320, 14)
+
+[sub_resource type="RectangleShape2D" id="RectangleShapeSides"]
+size = Vector2(14, 180)
+
+[sub_resource type="RectangleShape2D" id="RectangleShapeObstacle"]
+size = Vector2(22, 56)
+
+[sub_resource type="CircleShape2D" id="CircleShapeCat"]
+radius = 6.0
+
+[sub_resource type="RectangleShape2D" id="CheckpointVerticalLong"]
+size = Vector2(10, 52)
+
+[sub_resource type="RectangleShape2D" id="CheckpointHorizontalLong"]
+size = Vector2(42, 10)
+
+[sub_resource type="RectangleShape2D" id="CheckpointVerticalShort"]
+size = Vector2(10, 34)
+
+[sub_resource type="RectangleShape2D" id="CheckpointHorizontalShort"]
+size = Vector2(34, 10)
+
+[sub_resource type="RectangleShape2D" id="RugShape"]
+size = Vector2(82, 28)
+
+[sub_resource type="RectangleShape2D" id="MilkShape"]
+size = Vector2(62, 34)
+
+[sub_resource type="RectangleShape2D" id="CrumbsShape"]
+size = Vector2(42, 22)
+
+[sub_resource type="CircleShape2D" id="PanShape"]
+radius = 17.0
+
+[sub_resource type="CircleShape2D" id="MugShape"]
+radius = 11.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxHud"]
+bg_color = Color(0.0392157, 0.0627451, 0.109804, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.568627, 0.768627, 0.909804, 0.7)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 5.0
+content_margin_top = 3.0
+content_margin_right = 5.0
+content_margin_bottom = 3.0
+
+[node name="TestTrack" type="Node2D"]
+scale = Vector2(2, 2)
+script = ExtResource("1_track")
+
+[node name="TrackWalls" type="Node2D" parent="."]
+
+[node name="TopWall" type="StaticBody2D" parent="TrackWalls"]
+position = Vector2(160, 7)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrackWalls/TopWall"]
+shape = SubResource("RectangleShapeTopBottom")
+
+[node name="BottomWall" type="StaticBody2D" parent="TrackWalls"]
+position = Vector2(160, 173)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrackWalls/BottomWall"]
+shape = SubResource("RectangleShapeTopBottom")
+
+[node name="LeftWall" type="StaticBody2D" parent="TrackWalls"]
+position = Vector2(7, 90)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrackWalls/LeftWall"]
+shape = SubResource("RectangleShapeSides")
+
+[node name="RightWall" type="StaticBody2D" parent="TrackWalls"]
+position = Vector2(313, 90)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrackWalls/RightWall"]
+shape = SubResource("RectangleShapeSides")
+
+[node name="CardboardBox" type="StaticBody2D" parent="TrackWalls"]
+position = Vector2(164, 95)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrackWalls/CardboardBox"]
+shape = SubResource("RectangleShapeObstacle")
+
+[node name="KitchenProps" type="Node2D" parent="."]
+
+[node name="FryingPan" type="StaticBody2D" parent="KitchenProps"]
+position = Vector2(220, 87)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="KitchenProps/FryingPan"]
+shape = SubResource("PanShape")
+
+[node name="CoffeeMug" type="StaticBody2D" parent="KitchenProps"]
+position = Vector2(106, 94)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="KitchenProps/CoffeeMug"]
+shape = SubResource("MugShape")
+
+[node name="Michi" type="CharacterBody2D" parent="."]
+position = Vector2(74, 45)
+script = ExtResource("2_cat")
+racer_name = "Michi"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Michi"]
+shape = SubResource("CircleShapeCat")
+
+[node name="Nube" type="CharacterBody2D" parent="."]
+position = Vector2(54, 61)
+script = ExtResource("2_cat")
+fur_color = Color(0.48, 0.72, 0.95, 1)
+accent_color = Color(0.88, 0.96, 1, 1)
+racer_name = "Nube"
+ai_controlled = true
+max_forward_speed = 150.0
+max_reverse_speed = 58.0
+acceleration = 250.0
+braking = 320.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Nube"]
+shape = SubResource("CircleShapeCat")
+
+[node name="Tigre" type="CharacterBody2D" parent="."]
+position = Vector2(74, 77)
+script = ExtResource("2_cat")
+fur_color = Color(0.94, 0.48, 0.25, 1)
+accent_color = Color(1, 0.84, 0.55, 1)
+racer_name = "Tigre"
+ai_controlled = true
+max_forward_speed = 150.0
+max_reverse_speed = 58.0
+acceleration = 250.0
+braking = 320.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Tigre"]
+shape = SubResource("CircleShapeCat")
+
+[node name="Luna" type="CharacterBody2D" parent="."]
+position = Vector2(54, 93)
+script = ExtResource("2_cat")
+fur_color = Color(0.68, 0.48, 0.9, 1)
+accent_color = Color(0.94, 0.87, 1, 1)
+racer_name = "Luna"
+ai_controlled = true
+max_forward_speed = 150.0
+max_reverse_speed = 58.0
+acceleration = 250.0
+braking = 320.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Luna"]
+shape = SubResource("CircleShapeCat")
+
+[node name="RaceManager" type="Node" parent="."]
+script = ExtResource("3_race")
+
+[node name="KitchenSurfaces" type="Node2D" parent="."]
+
+[node name="KitchenRug" type="Area2D" parent="KitchenSurfaces"]
+position = Vector2(88, 118)
+script = ExtResource("4_surface")
+surface_name = "Alfombra"
+speed_multiplier = 0.7
+traction_multiplier = 1.25
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="KitchenSurfaces/KitchenRug"]
+shape = SubResource("RugShape")
+
+[node name="MilkSpill" type="Area2D" parent="KitchenSurfaces"]
+position = Vector2(236, 118)
+script = ExtResource("4_surface")
+surface_name = "Leche derramada"
+speed_multiplier = 0.9
+traction_multiplier = 0.34
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="KitchenSurfaces/MilkSpill"]
+shape = SubResource("MilkShape")
+
+[node name="Crumbs" type="Area2D" parent="KitchenSurfaces"]
+position = Vector2(190, 43)
+script = ExtResource("4_surface")
+surface_name = "Migajas"
+speed_multiplier = 0.82
+traction_multiplier = 0.78
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="KitchenSurfaces/Crumbs"]
+shape = SubResource("CrumbsShape")
+
+[node name="Checkpoints" type="Node2D" parent="."]
+
+[node name="Finish" type="Area2D" parent="Checkpoints"]
+position = Vector2(118, 31)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Checkpoints/Finish"]
+shape = SubResource("CheckpointVerticalLong")
+
+[node name="Checkpoint1" type="Area2D" parent="Checkpoints"]
+position = Vector2(248, 31)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Checkpoints/Checkpoint1"]
+shape = SubResource("CheckpointVerticalLong")
+
+[node name="Checkpoint2" type="Area2D" parent="Checkpoints"]
+position = Vector2(284, 93)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Checkpoints/Checkpoint2"]
+shape = SubResource("CheckpointHorizontalLong")
+
+[node name="Checkpoint3" type="Area2D" parent="Checkpoints"]
+position = Vector2(230, 150)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Checkpoints/Checkpoint3"]
+shape = SubResource("CheckpointVerticalShort")
+
+[node name="Checkpoint4" type="Area2D" parent="Checkpoints"]
+position = Vector2(80, 150)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Checkpoints/Checkpoint4"]
+shape = SubResource("CheckpointVerticalShort")
+
+[node name="Checkpoint5" type="Area2D" parent="Checkpoints"]
+position = Vector2(35, 85)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Checkpoints/Checkpoint5"]
+shape = SubResource("CheckpointHorizontalShort")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 2
+scale = Vector2(2, 2)
+
+[node name="Title" type="Label" parent="HUD"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 140.0
+offset_bottom = 31.0
+theme_override_colors/font_color = Color(0.901961, 0.960784, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0392157, 0.0627451, 0.109804, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 11
+text = "MICHI MACHINES"
+
+[node name="SpeedPanel" type="PanelContainer" parent="HUD"]
+offset_left = 225.0
+offset_top = 11.0
+offset_right = 308.0
+offset_bottom = 33.0
+theme_override_styles/panel = SubResource("StyleBoxHud")
+
+[node name="SpeedLabel" type="Label" parent="HUD/SpeedPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.929412, 0.984314, 0.819608, 1)
+theme_override_font_sizes/font_size = 8
+text = "000 MIAU"
+horizontal_alignment = 1
+
+[node name="RacePanel" type="PanelContainer" parent="HUD"]
+offset_left = 197.0
+offset_top = 37.0
+offset_right = 308.0
+offset_bottom = 59.0
+theme_override_styles/panel = SubResource("StyleBoxHud")
+
+[node name="RaceLabel" type="Label" parent="HUD/RacePanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.929412, 0.984314, 0.819608, 1)
+theme_override_font_sizes/font_size = 7
+text = "Vuelta 1/3 · 1.º"
+horizontal_alignment = 1
+
+[node name="StartLabel" type="Label" parent="HUD"]
+offset_left = 108.0
+offset_top = 12.0
+offset_right = 212.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(1, 0.929412, 0.490196, 1)
+theme_override_colors/font_outline_color = Color(0.0392157, 0.0627451, 0.109804, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+
+[node name="ResultPanel" type="PanelContainer" parent="HUD"]
+visible = false
+offset_left = 92.0
+offset_top = 68.0
+offset_right = 228.0
+offset_bottom = 112.0
+theme_override_styles/panel = SubResource("StyleBoxHud")
+
+[node name="ResultLabel" type="Label" parent="HUD/ResultPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.929412, 0.490196, 1)
+theme_override_font_sizes/font_size = 8
+text = "CARRERA TERMINADA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hint" type="Label" parent="HUD"]
+offset_left = 12.0
+offset_top = 34.0
+offset_right = 230.0
+offset_bottom = 47.0
+theme_override_colors/font_color = Color(0.741176, 0.811765, 0.901961, 0.9)
+theme_override_font_sizes/font_size = 7
+text = "WASD / flechas · Touch abajo"
