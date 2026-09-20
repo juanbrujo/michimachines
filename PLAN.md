@@ -65,6 +65,8 @@
 
 - [~] Construir infraestructura de superficies y una temática temporal de cocina.
 - [~] Añadir utilería de cocina y obstáculos físicos a la primera pista.
+- [x] Añadir cámara de persecución suave que concentra la vista en Michi y la ruta cercana.
+- [x] Añadir pickups automáticos: rapidez temporal, terremoto contra rivales y aceite resbaladizo; disponibles para los cuatro michis.
 - [ ] Diseñar una pista original completa, por ejemplo una cocina gigante.
 - [ ] Crear sprites temporales de cuatro gatos, superficies, obstáculos y HUD.
 - [ ] Añadir perfiles de gato y dificultades fácil, normal y difícil para IA.

@@ -1,9 +1,10 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/test_track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/cat_racer.gd" id="2_cat"]
 [ext_resource type="Script" path="res://scripts/race_manager.gd" id="3_race"]
 [ext_resource type="Script" path="res://scripts/track_surface.gd" id="4_surface"]
+[ext_resource type="Script" path="res://scripts/power_pickup.gd" id="5_power"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShapeTopBottom"]
 size = Vector2(320, 14)
@@ -43,6 +44,9 @@ radius = 17.0
 
 [sub_resource type="CircleShape2D" id="MugShape"]
 radius = 11.0
+
+[sub_resource type="CircleShape2D" id="PowerShape"]
+radius = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxHud"]
 bg_color = Color(0.0392157, 0.0627451, 0.109804, 0.82)
@@ -117,6 +121,17 @@ racer_name = "Michi"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Michi"]
 shape = SubResource("CircleShapeCat")
+
+[node name="RaceCamera" type="Camera2D" parent="Michi"]
+zoom = Vector2(1.45, 1.45)
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
+limit_left = 0
+limit_top = 0
+limit_right = 640
+limit_bottom = 360
+limit_smoothed = true
+ignore_rotation = true
 
 [node name="Nube" type="CharacterBody2D" parent="."]
 position = Vector2(54, 61)
@@ -199,6 +214,38 @@ traction_multiplier = 0.78
 shape = SubResource("CrumbsShape")
 
 [node name="Checkpoints" type="Node2D" parent="."]
+
+[node name="PowerPickups" type="Node2D" parent="."]
+
+[node name="SpeedPickup" type="Area2D" parent="PowerPickups"]
+position = Vector2(190, 43)
+script = ExtResource("5_power")
+power_type = "speed"
+respawn_seconds = 26.0
+initial_delay = 5.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PowerPickups/SpeedPickup"]
+shape = SubResource("PowerShape")
+
+[node name="QuakePickup" type="Area2D" parent="PowerPickups"]
+position = Vector2(275, 121)
+script = ExtResource("5_power")
+power_type = "quake"
+respawn_seconds = 30.0
+initial_delay = 18.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PowerPickups/QuakePickup"]
+shape = SubResource("PowerShape")
+
+[node name="OilPickup" type="Area2D" parent="PowerPickups"]
+position = Vector2(78, 145)
+script = ExtResource("5_power")
+power_type = "oil"
+respawn_seconds = 28.0
+initial_delay = 32.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PowerPickups/OilPickup"]
+shape = SubResource("PowerShape")
 
 [node name="Finish" type="Area2D" parent="Checkpoints"]
 position = Vector2(118, 31)
@@ -305,6 +352,20 @@ theme_override_font_sizes/font_size = 8
 text = "CARRERA TERMINADA"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="PowerPanel" type="PanelContainer" parent="HUD"]
+offset_left = 12.0
+offset_top = 50.0
+offset_right = 118.0
+offset_bottom = 69.0
+theme_override_styles/panel = SubResource("StyleBoxHud")
+
+[node name="PowerLabel" type="Label" parent="HUD/PowerPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.482353, 0.917647, 1, 1)
+theme_override_font_sizes/font_size = 7
+text = "PODER: —"
+horizontal_alignment = 1
 
 [node name="Hint" type="Label" parent="HUD"]
 offset_left = 12.0

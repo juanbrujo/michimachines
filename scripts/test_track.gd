@@ -17,6 +17,7 @@ const AI_WAYPOINTS := [
 const CHECKPOINT_POSITIONS := [
 	Vector2(118, 31), Vector2(248, 31), Vector2(284, 93), Vector2(230, 150), Vector2(80, 150), Vector2(35, 85),
 ]
+const OilSpill := preload("res://scripts/oil_spill.gd")
 
 var active_touches: Dictionary = {}
 
@@ -28,6 +29,7 @@ var active_touches: Dictionary = {}
 @onready var result_panel: PanelContainer = $HUD/ResultPanel
 @onready var result_label: Label = $HUD/ResultPanel/ResultLabel
 @onready var hint_label: Label = $HUD/Hint
+@onready var power_label: Label = $HUD/PowerPanel/PowerLabel
 
 var ai_waypoint_by_racer: Dictionary = {}
 var is_paused := false
@@ -36,6 +38,7 @@ var touch_controls_visible := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_to_group("race_controller")
 	touch_controls_visible = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	hint_label.text = "WASD / flechas / mando" if not touch_controls_visible else "Controles táctiles abajo"
 	_configure_input_actions()
@@ -60,6 +63,7 @@ func _process(_delta: float) -> void:
 	speed_label.text = "%03d MIAU" % roundi(absf(michi.drive_speed))
 	race_label.text = race_manager.call("get_status", michi)
 	start_label.text = race_manager.call("get_banner", michi)
+	_update_power_hud()
 	result_panel.visible = race_manager.call("is_race_complete")
 	if result_panel.visible:
 		result_label.text = race_manager.call("get_result_text", michi)
@@ -110,6 +114,30 @@ func get_racer_input(racer: CatRacer) -> Dictionary:
 	if racer == michi:
 		return get_drive_input()
 	return _get_ai_input(racer)
+
+
+func activate_power(racer: CatRacer, power_type: String) -> void:
+	if not race_manager.call("can_drive", racer):
+		return
+	match power_type:
+		"speed":
+			racer.activate_speed_boost(4.0)
+		"quake":
+			for other_racer: CatRacer in [$Michi, $Nube, $Tigre, $Luna]:
+				if other_racer != racer:
+					other_racer.apply_quake(1.35)
+		"oil":
+			var spill: Area2D = OilSpill.new()
+			add_child(spill)
+			spill.position = racer.position - Vector2.RIGHT.rotated(racer.rotation) * 13.0
+	_update_power_hud()
+
+
+func _update_power_hud() -> void:
+	if michi.boost_time > 0.0:
+		power_label.text = "RAPIDEZ %.1fs" % michi.boost_time
+	else:
+		power_label.text = "PODER AUTO"
 
 
 func _get_ai_input(racer: CatRacer) -> Dictionary:

@@ -26,6 +26,8 @@ var last_impact := 0.0
 var tail_time := 0.0
 var recovery_time := 0.0
 var recovery_turn := 1.0
+var boost_time := 0.0
+var stun_time := 0.0
 var surface_id := 0
 var surface_name := "Madera"
 var surface_speed_multiplier := 1.0
@@ -39,8 +41,14 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	tail_time += delta
+	boost_time = maxf(0.0, boost_time - delta)
+	stun_time = maxf(0.0, stun_time - delta)
 	var controls := _read_controls()
-	if recovery_time > 0.0:
+	if stun_time > 0.0:
+		drive_speed = move_toward(drive_speed, 0.0, braking * delta)
+		velocity = velocity.lerp(Vector2.ZERO, minf(1.0, 7.0 * delta))
+		rotation += recovery_turn * 4.5 * delta
+	elif recovery_time > 0.0:
 		recovery_time -= delta
 		drive_speed = move_toward(drive_speed, -max_reverse_speed * surface_speed_multiplier * 0.8, braking * delta)
 		rotation += recovery_turn * turn_rate * 0.72 * delta
@@ -64,7 +72,8 @@ func _read_controls() -> Dictionary:
 
 
 func _update_drive_speed(accelerate_input: float, brake_input: float, delta: float) -> void:
-	var forward_speed_limit := max_forward_speed * surface_speed_multiplier
+	var boost_multiplier := 1.45 if boost_time > 0.0 else 1.0
+	var forward_speed_limit := max_forward_speed * surface_speed_multiplier * boost_multiplier
 	var reverse_speed_limit := max_reverse_speed * surface_speed_multiplier
 	if accelerate_input > 0.0:
 		drive_speed = move_toward(drive_speed, forward_speed_limit, acceleration * accelerate_input * delta)
@@ -113,6 +122,15 @@ func clear_surface(leaving_surface_id: int) -> void:
 	surface_traction_multiplier = 1.0
 
 
+func activate_speed_boost(duration: float) -> void:
+	boost_time = maxf(boost_time, duration)
+
+
+func apply_quake(duration: float) -> void:
+	stun_time = maxf(stun_time, duration)
+	recovery_turn = -1.0 if get_instance_id() % 2 == 0 else 1.0
+
+
 func _draw() -> void:
 	# Placeholder cat rendered in code until final pixel sprites arrive.
 	draw_circle(Vector2(1.5, 2.0), 6.2, Color(0.02, 0.03, 0.06, 0.34))
@@ -131,3 +149,7 @@ func _draw() -> void:
 	draw_line(Vector2(6.2, 0.0), Vector2(8.2, 0.0), Color("17202c"), 0.8, true)
 	if last_impact > 0.05:
 		draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 16, Color(1.0, 0.92, 0.45, last_impact), 1.0, false)
+	if boost_time > 0.0:
+		draw_arc(Vector2.ZERO, 10.5, 0.0, TAU, 16, Color(0.35, 0.92, 1.0, 0.8), 1.0, false)
+	if stun_time > 0.0:
+		draw_circle(Vector2(0.0, -10.0), 1.4, Color("ffcf65"))
