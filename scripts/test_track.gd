@@ -18,6 +18,7 @@ const CHECKPOINT_POSITIONS := [
 	Vector2(118, 31), Vector2(248, 31), Vector2(284, 93), Vector2(230, 150), Vector2(80, 150), Vector2(35, 85),
 ]
 const OilSpill := preload("res://scripts/oil_spill.gd")
+const VictoryConfetti := preload("res://scripts/victory_confetti.gd")
 
 var active_touches: Dictionary = {}
 
@@ -30,10 +31,13 @@ var active_touches: Dictionary = {}
 @onready var result_label: Label = $HUD/ResultPanel/ResultLabel
 @onready var hint_label: Label = $HUD/Hint
 @onready var power_label: Label = $HUD/PowerPanel/PowerLabel
+@onready var standings_label: Label = $HUD/StandingsPanel/StandingsLabel
 
 var ai_waypoint_by_racer: Dictionary = {}
 var is_paused := false
 var touch_controls_visible := false
+var player_won := false
+var new_record := false
 
 
 func _ready() -> void:
@@ -42,36 +46,85 @@ func _ready() -> void:
 	touch_controls_visible = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	hint_label.text = "WASD / flechas / mando" if not touch_controls_visible else "Controles táctiles abajo"
 	_configure_input_actions()
+	_configure_racers_from_selection()
+	_apply_difficulty()
 	race_manager.call("setup",
 		[$Michi, $Nube, $Tigre, $Luna],
 		[$Checkpoints/Finish, $Checkpoints/Checkpoint1, $Checkpoints/Checkpoint2, $Checkpoints/Checkpoint3, $Checkpoints/Checkpoint4, $Checkpoints/Checkpoint5],
 	)
+	race_manager.racer_finished.connect(_on_racer_finished)
 	ai_waypoint_by_racer[$Nube.get_instance_id()] = 0
 	ai_waypoint_by_racer[$Tigre.get_instance_id()] = 8
 	ai_waypoint_by_racer[$Luna.get_instance_id()] = 7
 	queue_redraw()
 
 
+func _apply_difficulty() -> void:
+	for racer: CatRacer in [$Nube, $Tigre, $Luna]:
+		racer.max_forward_speed *= RaceSettings.speed_multiplier()
+		racer.acceleration *= RaceSettings.acceleration_multiplier()
+
+
+func _configure_racers_from_selection() -> void:
+	var profiles: Array = RaceSettings.CAT_PROFILES.duplicate()
+	var selected: Dictionary = RaceSettings.get_selected_profile()
+	_configure_racer($Michi, selected, true)
+	profiles.remove_at(RaceSettings.selected_cat)
+	for index in profiles.size():
+		_configure_racer([$Nube, $Tigre, $Luna][index], profiles[index], false)
+
+
+func _configure_racer(racer: CatRacer, profile: Dictionary, is_player: bool) -> void:
+	racer.racer_name = profile.name
+	racer.fur_color = profile.fur
+	racer.accent_color = profile.accent
+	racer.set_visual(profile.visual)
+	racer.refresh_name_tag()
+	racer.queue_redraw()
+
+
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed(&"pause"):
-		is_paused = not is_paused
-		get_tree().paused = is_paused
+		_set_race_paused(not is_paused)
 	if is_paused:
 		start_label.text = "PAUSA"
 		return
 
 	speed_label.text = "%03d MIAU" % roundi(absf(michi.drive_speed))
 	race_label.text = race_manager.call("get_status", michi)
+	_update_standings()
 	start_label.text = race_manager.call("get_banner", michi)
 	_update_power_hud()
 	result_panel.visible = race_manager.call("is_race_complete")
 	if result_panel.visible:
 		result_label.text = race_manager.call("get_result_text", michi)
+		if player_won:
+			result_label.text += "\n%s" % ("NUEVO RÉCORD" if new_record else "RÉCORD: %s" % RaceSettings.format_time(RaceSettings.get_best_time(michi.racer_name)))
 	if Input.is_action_just_pressed(&"reset"):
 		_respawn_racer(michi)
 	if Input.is_action_just_pressed(&"restart") and not race_manager.call("can_drive", michi):
 		get_tree().reload_current_scene()
 	queue_redraw()
+
+
+func _set_race_paused(should_pause: bool) -> void:
+	# Do not pause SceneTree itself: this root must still read Escape, and
+	# inherited process modes can otherwise leave CharacterBody2D nodes asleep.
+	is_paused = should_pause
+	get_tree().paused = false
+	race_manager.race_paused = should_pause
+	for racer: CatRacer in [$Michi, $Nube, $Tigre, $Luna]:
+		racer.race_paused = should_pause
+
+
+func _on_racer_finished(racer: CatRacer, place: int) -> void:
+	racer.celebrate_win()
+	if racer != michi or place != 1:
+		return
+	player_won = true
+	new_record = RaceSettings.register_best_time(michi.racer_name, race_manager.call("get_elapsed_time"))
+	var confetti := VictoryConfetti.new()
+	$HUD.add_child(confetti)
 
 
 func get_drive_input() -> Dictionary:
@@ -138,6 +191,14 @@ func _update_power_hud() -> void:
 		power_label.text = "RAPIDEZ %.1fs" % michi.boost_time
 	else:
 		power_label.text = "PODER AUTO"
+
+
+func _update_standings() -> void:
+	var lines: PackedStringArray = []
+	var standings: Array[CatRacer] = race_manager.call("get_standings")
+	for index in standings.size():
+		lines.append("%d.º %s" % [index + 1, standings[index].racer_name])
+	standings_label.text = "LUGAR\n%s" % "\n".join(lines)
 
 
 func _get_ai_input(racer: CatRacer) -> Dictionary:

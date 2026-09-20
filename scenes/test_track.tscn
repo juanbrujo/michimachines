@@ -1,10 +1,11 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/test_track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/cat_racer.gd" id="2_cat"]
 [ext_resource type="Script" path="res://scripts/race_manager.gd" id="3_race"]
 [ext_resource type="Script" path="res://scripts/track_surface.gd" id="4_surface"]
 [ext_resource type="Script" path="res://scripts/power_pickup.gd" id="5_power"]
+[ext_resource type="Texture2D" path="res://assets/ui/logo.png" id="6_logo"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShapeTopBottom"]
 size = Vector2(320, 14)
@@ -65,7 +66,6 @@ content_margin_right = 5.0
 content_margin_bottom = 3.0
 
 [node name="TestTrack" type="Node2D"]
-scale = Vector2(2, 2)
 script = ExtResource("1_track")
 
 [node name="TrackWalls" type="Node2D" parent="."]
@@ -117,19 +117,21 @@ shape = SubResource("MugShape")
 [node name="Michi" type="CharacterBody2D" parent="."]
 position = Vector2(74, 45)
 script = ExtResource("2_cat")
-racer_name = "Michi"
+fur_color = Color(0.48, 0.31, 0.25, 1)
+accent_color = Color(1, 0.91, 0.72, 1)
+racer_name = "Ñau"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Michi"]
 shape = SubResource("CircleShapeCat")
 
 [node name="RaceCamera" type="Camera2D" parent="Michi"]
-zoom = Vector2(1.45, 1.45)
+zoom = Vector2(2.55, 2.55)
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
 limit_left = 0
 limit_top = 0
-limit_right = 640
-limit_bottom = 360
+limit_right = 320
+limit_bottom = 180
 limit_smoothed = true
 ignore_rotation = true
 
@@ -297,6 +299,17 @@ theme_override_colors/font_outline_color = Color(0.0392157, 0.0627451, 0.109804,
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 11
 text = "MICHI MACHINES"
+visible = false
+
+[node name="Logo" type="TextureRect" parent="HUD"]
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 76.0
+offset_bottom = 37.0
+texture = ExtResource("6_logo")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
 
 [node name="SpeedPanel" type="PanelContainer" parent="HUD"]
 offset_left = 225.0
@@ -340,15 +353,15 @@ horizontal_alignment = 1
 [node name="ResultPanel" type="PanelContainer" parent="HUD"]
 visible = false
 offset_left = 92.0
-offset_top = 68.0
+offset_top = 58.0
 offset_right = 228.0
-offset_bottom = 112.0
+offset_bottom = 130.0
 theme_override_styles/panel = SubResource("StyleBoxHud")
 
 [node name="ResultLabel" type="Label" parent="HUD/ResultPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.929412, 0.490196, 1)
-theme_override_font_sizes/font_size = 8
+theme_override_font_sizes/font_size = 6
 text = "CARRERA TERMINADA"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -367,11 +380,24 @@ theme_override_font_sizes/font_size = 7
 text = "PODER: —"
 horizontal_alignment = 1
 
+[node name="StandingsPanel" type="PanelContainer" parent="HUD"]
+offset_left = 12.0
+offset_top = 72.0
+offset_right = 79.0
+offset_bottom = 117.0
+theme_override_styles/panel = SubResource("StyleBoxHud")
+
+[node name="StandingsLabel" type="Label" parent="HUD/StandingsPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 5
+text = "LUGAR\n1.º Ñau\n2.º Cajú\n3.º Romeo\n4.º Osama"
+
 [node name="Hint" type="Label" parent="HUD"]
 offset_left = 12.0
-offset_top = 34.0
+offset_top = 38.0
 offset_right = 230.0
-offset_bottom = 47.0
+offset_bottom = 51.0
 theme_override_colors/font_color = Color(0.741176, 0.811765, 0.901961, 0.9)
 theme_override_font_sizes/font_size = 7
 text = "WASD / flechas · Touch abajo"

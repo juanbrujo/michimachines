@@ -15,6 +15,13 @@ var countdown := 3.0
 var elapsed_time := 0.0
 var race_active := false
 var race_complete := false
+var race_paused := false
+var winner: CatRacer
+var start_flash := 0.0
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_PAUSABLE
 
 
 func setup(race_racers: Array, race_checkpoints: Array) -> void:
@@ -32,14 +39,18 @@ func setup(race_racers: Array, race_checkpoints: Array) -> void:
 
 
 func _process(delta: float) -> void:
+	if race_paused:
+		return
 	if race_complete:
 		return
 	if not race_active:
 		countdown -= delta
 		if countdown <= 0.0:
 			race_active = true
+			start_flash = 0.8
 			race_started.emit()
 		return
+	start_flash = maxf(0.0, start_flash - delta)
 	elapsed_time += delta
 
 
@@ -50,9 +61,11 @@ func can_drive(racer: CatRacer) -> bool:
 
 func get_banner(player: CatRacer) -> String:
 	if race_complete:
-		return "META · %d.º\nR PARA REINTENTAR" % get_position(player)
+		return "META"
 	if not race_active:
-		return "%d" % ceili(countdown)
+		return "%d\nPREPÁRATE" % ceili(countdown)
+	if start_flash > 0.0:
+		return "¡YA!"
 	return _format_time(elapsed_time)
 
 
@@ -61,7 +74,20 @@ func is_race_complete() -> bool:
 
 
 func get_result_text(player: CatRacer) -> String:
-	return "CARRERA TERMINADA\n%s · %d.º\nR PARA REINTENTAR" % [_format_time(elapsed_time), get_position(player)]
+	var standings := get_standings()
+	var player_place := standings.find(player) + 1
+	var outcome := "GANASTE" if winner == player else "GANÓ %s" % winner.racer_name
+	var player_result := "TÚ: %d.º" % player_place
+	if player_place >= racers.size():
+		player_result = "TÚ: ÚLTIMO"
+	var podium_names: PackedStringArray = []
+	for index in min(3, standings.size()):
+		podium_names.append(standings[index].racer_name)
+	return "%s\n%s · %s\nPODIO: %s\nR PARA REINTENTAR" % [outcome, player_result, _format_time(elapsed_time), " · ".join(podium_names)]
+
+
+func get_elapsed_time() -> float:
+	return elapsed_time
 
 
 func get_last_checkpoint_index(racer: CatRacer) -> int:
@@ -82,6 +108,12 @@ func get_position(racer: CatRacer) -> int:
 	var ordered := racers.duplicate()
 	ordered.sort_custom(func(a: CatRacer, b: CatRacer) -> bool: return _progress_score(a) > _progress_score(b))
 	return ordered.find(racer) + 1
+
+
+func get_standings() -> Array[CatRacer]:
+	var ordered := racers.duplicate()
+	ordered.sort_custom(func(a: CatRacer, b: CatRacer) -> bool: return _progress_score(a) > _progress_score(b))
+	return ordered
 
 
 func _progress_score(racer: CatRacer) -> float:
@@ -105,11 +137,13 @@ func _on_checkpoint_entered(body: Node2D, checkpoint_index: int) -> void:
 		if data.lap >= laps_to_win:
 			data.finished = true
 			finish_order.append(racer)
+			progress_by_racer[racer.get_instance_id()] = data
 			racer_finished.emit(racer, finish_order.size())
-			if racer == racers[0]:
-				race_complete = true
-				race_active = false
-				race_completed.emit()
+			winner = racer
+			race_complete = true
+			race_active = false
+			race_completed.emit()
+			return
 	data.next_checkpoint = (checkpoint_index + 1) % checkpoints.size()
 	progress_by_racer[racer.get_instance_id()] = data
 

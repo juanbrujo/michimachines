@@ -5,8 +5,7 @@
 - [x] Concepto definido: carreras arcade cenitales protagonizadas por gatos.
 - [x] Plataformas priorizadas: web, macOS y iPhone/iPad.
 - [x] Dirección visual: 2D pixel-art; efectos avanzados después del MVP.
-- [~] Fase actual: **Fase 1 — Prototipo de conducción**. La escena carga en Godot 4.7.2; falta probar la sensación de manejo en pantalla y dispositivos reales.
-- [~] Fase 2 iniciada: circuito temporal, IA, checkpoints, vueltas y posición ya implementados.
+- [~] Fase actual: **Fase 2 — Carrera mínima jugable**. El flujo ya comienza desde un menú temporal; falta validación manual de una carrera completa y controles móviles.
 
 ## Visión
 
@@ -33,6 +32,7 @@
 - [ ] Configurar plantillas y presets de exportación para web, macOS e iOS.
 - [ ] Crear guía visual temporal y lista de recursos originales.
 - [ ] Documentar primera pista y cuatro gatos iniciales.
+- [~] Personalizar corredores con los gatos reales: Ñau definido como jugador atigrado café/anaranjado y crema; faltan los tres rivales.
 - [ ] Confirmar que el proyecto abre y exporta en navegador/macOS.
 
 ## Fase 1 — Prototipo de conducción
@@ -59,6 +59,10 @@
 - [x] Añadir HUD temporal de vuelta, posición y velocidad.
 - [x] Añadir resultado de meta e inicio rápido de una nueva carrera (`R`).
 - [x] Añadir pausa (`Escape`) y pantalla de resultados básica.
+- [x] Terminar la carrera cuando cualquier michi gana y mostrar resultado/podio.
+- [x] Guardar récord local de vuelta completa por michi.
+- [x] Añadir menú temporal con acceso a carrera rápida y resumen de controles.
+- [x] Añadir selector de ritmo tranquilo, normal y rápido para los rivales.
 - [ ] Validar una carrera completa de tres vueltas contra tres rivales.
 
 ## Fase 3 — Vertical slice pixel-art
@@ -69,7 +73,7 @@
 - [x] Añadir pickups automáticos: rapidez temporal, terremoto contra rivales y aceite resbaladizo; disponibles para los cuatro michis.
 - [ ] Diseñar una pista original completa, por ejemplo una cocina gigante.
 - [ ] Crear sprites temporales de cuatro gatos, superficies, obstáculos y HUD.
-- [ ] Añadir perfiles de gato y dificultades fácil, normal y difícil para IA.
+- [ ] Mejorar IA con anticipación de curvas, recuperación y adelantamientos; entonces añadir dificultades fácil, normal y difícil reales.
 - [ ] Añadir polvo, derrape, choques, música temporal y efectos de sonido.
 - [ ] Validar una partida completa en escritorio y Safari de iPhone.
 
@@ -94,5 +98,5 @@
 - [ ] Cuatro gatos: uno humano y tres IA.
 - [ ] Carrera de tres vueltas con fácil/normal/difícil.
 - [ ] Teclado, mando y touch.
-- [ ] HUD, pausa, resultados, sonido básico y récord local.
+- [~] HUD, pausa, resultados y récord local; falta sonido básico.
 - [ ] Export web y pruebas macOS/iPhone.

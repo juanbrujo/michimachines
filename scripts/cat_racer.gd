@@ -20,6 +20,7 @@ extends CharacterBody2D
 @export var accent_color := Color("fff1cc")
 @export var racer_name := "Michi"
 @export var ai_controlled := false
+@export var use_custom_visual := false
 
 var drive_speed := 0.0
 var last_impact := 0.0
@@ -28,6 +29,11 @@ var recovery_time := 0.0
 var recovery_turn := 1.0
 var boost_time := 0.0
 var stun_time := 0.0
+var race_paused := false
+var victory_time := -1.0
+var victory_origin := Vector2.ZERO
+var name_tag: Label
+var visual_sprite: Sprite2D
 var surface_id := 0
 var surface_name := "Madera"
 var surface_speed_multiplier := 1.0
@@ -35,11 +41,66 @@ var surface_traction_multiplier := 1.0
 
 
 func _ready() -> void:
+	# TestTrack listens for Escape while paused, but racers themselves must
+	# respect the scene tree pause even though their parent remains active.
+	process_mode = Node.PROCESS_MODE_PAUSABLE
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	_create_name_tag()
 	queue_redraw()
 
 
+func _process(_delta: float) -> void:
+	if is_instance_valid(name_tag):
+		name_tag.global_position = global_position + Vector2(-13.0, -15.0)
+
+
+func _create_name_tag() -> void:
+	name_tag = Label.new()
+	name_tag.top_level = true
+	name_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_tag.add_theme_font_size_override("font_size", 5)
+	name_tag.add_theme_color_override("font_color", Color(0.94, 0.98, 1.0, 1))
+	name_tag.add_theme_color_override("font_outline_color", Color(0.03, 0.06, 0.11, 1))
+	name_tag.add_theme_constant_override("outline_size", 1)
+	name_tag.size = Vector2(26.0, 8.0)
+	name_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(name_tag)
+	refresh_name_tag()
+
+
+func refresh_name_tag() -> void:
+	if is_instance_valid(name_tag):
+		name_tag.text = racer_name
+
+
+func set_visual(texture: Texture2D) -> void:
+	use_custom_visual = texture != null
+	if texture == null:
+		if is_instance_valid(visual_sprite):
+			visual_sprite.hide()
+		return
+	if not is_instance_valid(visual_sprite):
+		visual_sprite = Sprite2D.new()
+		visual_sprite.name = "VisualSprite"
+		visual_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		visual_sprite.rotation = -PI * 0.5
+		visual_sprite.scale = Vector2(0.25, 0.25)
+		add_child(visual_sprite)
+	visual_sprite.texture = texture
+	visual_sprite.show()
+
+
 func _physics_process(delta: float) -> void:
+	if race_paused:
+		return
+	if victory_time >= 0.0:
+		victory_time += delta
+		drive_speed = 0.0
+		velocity = Vector2.ZERO
+		position = victory_origin + Vector2(0.0, -absf(sin(victory_time * 9.0)) * 7.0)
+		rotation += 6.8 * delta
+		queue_redraw()
+		return
 	tail_time += delta
 	boost_time = maxf(0.0, boost_time - delta)
 	stun_time = maxf(0.0, stun_time - delta)
@@ -131,7 +192,19 @@ func apply_quake(duration: float) -> void:
 	recovery_turn = -1.0 if get_instance_id() % 2 == 0 else 1.0
 
 
+func celebrate_win() -> void:
+	if victory_time >= 0.0:
+		return
+	victory_time = 0.0
+	victory_origin = position
+	drive_speed = 0.0
+	velocity = Vector2.ZERO
+
+
 func _draw() -> void:
+	if use_custom_visual:
+		_draw_status_effects()
+		return
 	# Placeholder cat rendered in code until final pixel sprites arrive.
 	draw_circle(Vector2(1.5, 2.0), 6.2, Color(0.02, 0.03, 0.06, 0.34))
 	var speed_ratio := absf(drive_speed) / max_forward_speed
@@ -147,9 +220,20 @@ func _draw() -> void:
 	draw_circle(Vector2(5.4, -1.6), 0.7, Color("17202c"))
 	draw_circle(Vector2(5.4, 1.6), 0.7, Color("17202c"))
 	draw_line(Vector2(6.2, 0.0), Vector2(8.2, 0.0), Color("17202c"), 0.8, true)
+	_draw_status_effects()
+
+
+func _draw_status_effects() -> void:
 	if last_impact > 0.05:
 		draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 16, Color(1.0, 0.92, 0.45, last_impact), 1.0, false)
 	if boost_time > 0.0:
 		draw_arc(Vector2.ZERO, 10.5, 0.0, TAU, 16, Color(0.35, 0.92, 1.0, 0.8), 1.0, false)
 	if stun_time > 0.0:
 		draw_circle(Vector2(0.0, -10.0), 1.4, Color("ffcf65"))
+	if victory_time >= 0.0:
+		for index in range(14):
+			var angle := float(index) * 1.91 + victory_time * 4.0
+			var radius := 5.0 + fmod(victory_time * 15.0 + float(index * 3), 13.0)
+			var confetti_position := Vector2(cos(angle) * radius, sin(angle) * radius - 5.0)
+			var color: Color = [Color("ffcf65"), Color("74eaff"), Color("ff6b8a"), Color("a8ef7a")][index % 4]
+			draw_rect(Rect2(confetti_position, Vector2(1.6, 2.5)), color)

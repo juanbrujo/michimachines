@@ -15,8 +15,12 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Michi Machines"
-run/main_scene="res://scenes/test_track.tscn"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[autoload]
+
+RaceSettings="*res://scripts/race_settings.gd"
 
 [display]
 

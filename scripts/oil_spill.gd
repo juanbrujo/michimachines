@@ -4,15 +4,24 @@ const LIFETIME := 6.0
 
 
 func _ready() -> void:
+	body_entered.connect(_on_body_entered)
+	body_exited.connect(_on_body_exited)
+	# This spill can be created from another Area2D's body_entered callback.
+	# Wait until Godot has finished flushing that physics query before adding
+	# its collision shape.
+	call_deferred("_create_collision")
+	queue_redraw()
+	get_tree().create_timer(LIFETIME).timeout.connect(_expire)
+
+
+func _create_collision() -> void:
+	if not is_inside_tree():
+		return
 	var collision := CollisionShape2D.new()
 	var shape := CircleShape2D.new()
 	shape.radius = 18.0
 	collision.shape = shape
 	add_child(collision)
-	body_entered.connect(_on_body_entered)
-	body_exited.connect(_on_body_exited)
-	queue_redraw()
-	get_tree().create_timer(LIFETIME).timeout.connect(_expire)
 
 
 func _on_body_entered(body: Node2D) -> void:
