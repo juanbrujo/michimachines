@@ -4,10 +4,10 @@ var difficulty := 1
 var selected_cat := 0
 
 const CAT_PROFILES := [
-	{"name": "Ñau", "description": "Atigrado crema", "fur": Color(0.48, 0.31, 0.25, 1), "accent": Color(1, 0.91, 0.72, 1), "visual": preload("res://assets/sprites/nau.png")},
-	{"name": "Cajú", "description": "Gris y peluda", "fur": Color(0.46, 0.5, 0.56, 1), "accent": Color(0.82, 0.86, 0.9, 1), "visual": preload("res://assets/sprites/caju.png")},
-	{"name": "Romeo", "description": "Naranjoso y delgado", "fur": Color(0.93, 0.42, 0.16, 1), "accent": Color(1, 0.77, 0.42, 1), "visual": preload("res://assets/sprites/romeo.png")},
-	{"name": "Osama", "description": "Negro y peludo", "fur": Color(0.1, 0.12, 0.17, 1), "accent": Color(0.42, 0.46, 0.54, 1), "visual": preload("res://assets/sprites/osama.png")},
+	{"name": "Ñau", "description": "Rápido y resbaladizo", "fur": Color(0.48, 0.31, 0.25, 1), "accent": Color(1, 0.91, 0.72, 1), "visual": preload("res://assets/sprites/nau.png"), "speed": 1.08, "acceleration": 1.08, "turn": 0.96, "grip": 0.84, "bounce": 1.35, "impact_keep": 0.84},
+	{"name": "Cajú", "description": "Pesada, firme en curvas", "fur": Color(0.46, 0.5, 0.56, 1), "accent": Color(0.82, 0.86, 0.9, 1), "visual": preload("res://assets/sprites/caju.png"), "speed": 0.88, "acceleration": 0.9, "turn": 1.08, "grip": 1.25, "bounce": 0.72, "impact_keep": 1.08},
+	{"name": "Romeo", "description": "Muy rápido y liviano", "fur": Color(0.93, 0.42, 0.16, 1), "accent": Color(1, 0.77, 0.42, 1), "visual": preload("res://assets/sprites/romeo.png"), "speed": 1.1, "acceleration": 1.12, "turn": 0.94, "grip": 0.8, "bounce": 1.42, "impact_keep": 0.8},
+	{"name": "Osama", "description": "Pesado, gran agarre", "fur": Color(0.1, 0.12, 0.17, 1), "accent": Color(0.42, 0.46, 0.54, 1), "visual": preload("res://assets/sprites/osama.png"), "speed": 0.86, "acceleration": 0.88, "turn": 1.06, "grip": 1.3, "bounce": 0.68, "impact_keep": 1.1},
 ]
 const SAVE_PATH := "user://michi_machines_records.cfg"
 
@@ -74,4 +74,13 @@ func acceleration_multiplier() -> float:
 			return 0.82
 		2:
 			return 1.12
+	return 1.0
+
+
+func ai_skill_multiplier() -> float:
+	match difficulty:
+		0:
+			return 0.76
+		2:
+			return 1.2
 	return 1.0

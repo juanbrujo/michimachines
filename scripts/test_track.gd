@@ -19,6 +19,7 @@ const CHECKPOINT_POSITIONS := [
 ]
 const OilSpill := preload("res://scripts/oil_spill.gd")
 const VictoryConfetti := preload("res://scripts/victory_confetti.gd")
+const KitchenArt := preload("res://assets/cocina.png")
 
 var active_touches: Dictionary = {}
 
@@ -32,12 +33,16 @@ var active_touches: Dictionary = {}
 @onready var hint_label: Label = $HUD/Hint
 @onready var power_label: Label = $HUD/PowerPanel/PowerLabel
 @onready var standings_label: Label = $HUD/StandingsPanel/StandingsLabel
+@onready var race_camera: Camera2D = $Michi/RaceCamera
 
 var ai_waypoint_by_racer: Dictionary = {}
 var is_paused := false
 var touch_controls_visible := false
 var player_won := false
 var new_record := false
+var ai_safety_by_racer: Dictionary = {}
+
+const AI_LANE_BY_RACER := {"Nube": -8.0, "Tigre": 0.0, "Luna": 8.0}
 
 
 func _ready() -> void:
@@ -53,9 +58,12 @@ func _ready() -> void:
 		[$Checkpoints/Finish, $Checkpoints/Checkpoint1, $Checkpoints/Checkpoint2, $Checkpoints/Checkpoint3, $Checkpoints/Checkpoint4, $Checkpoints/Checkpoint5],
 	)
 	race_manager.racer_finished.connect(_on_racer_finished)
-	ai_waypoint_by_racer[$Nube.get_instance_id()] = 0
-	ai_waypoint_by_racer[$Tigre.get_instance_id()] = 8
-	ai_waypoint_by_racer[$Luna.get_instance_id()] = 7
+	for racer: CatRacer in [$Nube, $Tigre, $Luna]:
+		# All rivals begin on the same first straight, already facing its entry.
+		ai_waypoint_by_racer[racer.get_instance_id()] = 0
+		racer.rotation = racer.position.angle_to_point(AI_WAYPOINTS[0])
+	for racer: CatRacer in [$Nube, $Tigre, $Luna]:
+		ai_safety_by_racer[racer.get_instance_id()] = {"position": racer.position, "stuck_time": 0.0}
 	queue_redraw()
 
 
@@ -78,17 +86,24 @@ func _configure_racer(racer: CatRacer, profile: Dictionary, is_player: bool) -> 
 	racer.racer_name = profile.name
 	racer.fur_color = profile.fur
 	racer.accent_color = profile.accent
+	racer.max_forward_speed *= profile.speed
+	racer.acceleration *= profile.acceleration
+	racer.turn_rate *= profile.turn
+	racer.traction *= profile.grip
+	racer.collision_bounce *= profile.bounce
+	racer.collision_speed_loss *= profile.impact_keep
 	racer.set_visual(profile.visual)
 	racer.refresh_name_tag()
 	racer.queue_redraw()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if Input.is_action_just_pressed(&"pause"):
 		_set_race_paused(not is_paused)
 	if is_paused:
 		start_label.text = "PAUSA"
 		return
+	_update_ai_safety(delta)
 
 	speed_label.text = "%03d MIAU" % roundi(absf(michi.drive_speed))
 	race_label.text = race_manager.call("get_status", michi)
@@ -119,12 +134,20 @@ func _set_race_paused(should_pause: bool) -> void:
 
 func _on_racer_finished(racer: CatRacer, place: int) -> void:
 	racer.celebrate_win()
+	_focus_winner(racer)
 	if racer != michi or place != 1:
 		return
 	player_won = true
 	new_record = RaceSettings.register_best_time(michi.racer_name, race_manager.call("get_elapsed_time"))
 	var confetti := VictoryConfetti.new()
 	$HUD.add_child(confetti)
+
+
+func _focus_winner(racer: CatRacer) -> void:
+	if race_camera.get_parent() != racer:
+		race_camera.reparent(racer)
+	race_camera.position = Vector2.ZERO
+	race_camera.rotation = 0.0
 
 
 func get_drive_input() -> Dictionary:
@@ -169,9 +192,9 @@ func get_racer_input(racer: CatRacer) -> Dictionary:
 	return _get_ai_input(racer)
 
 
-func activate_power(racer: CatRacer, power_type: String) -> void:
+func activate_power(racer: CatRacer, power_type: String) -> bool:
 	if not race_manager.call("can_drive", racer):
-		return
+		return false
 	match power_type:
 		"speed":
 			racer.activate_speed_boost(4.0)
@@ -184,6 +207,7 @@ func activate_power(racer: CatRacer, power_type: String) -> void:
 			add_child(spill)
 			spill.position = racer.position - Vector2.RIGHT.rotated(racer.rotation) * 13.0
 	_update_power_hud()
+	return true
 
 
 func _update_power_hud() -> void:
@@ -203,21 +227,89 @@ func _update_standings() -> void:
 
 func _get_ai_input(racer: CatRacer) -> Dictionary:
 	var waypoint_index: int = ai_waypoint_by_racer.get(racer.get_instance_id(), 0)
-	var target: Vector2 = AI_WAYPOINTS[waypoint_index]
-	if racer.position.distance_to(target) < 15.0:
+	var waypoint: Vector2 = AI_WAYPOINTS[waypoint_index]
+	var distance_to_waypoint := racer.position.distance_to(waypoint)
+	if distance_to_waypoint < 18.0:
 		waypoint_index = (waypoint_index + 1) % AI_WAYPOINTS.size()
 		ai_waypoint_by_racer[racer.get_instance_id()] = waypoint_index
-		target = AI_WAYPOINTS[waypoint_index]
+		waypoint = AI_WAYPOINTS[waypoint_index]
+		distance_to_waypoint = racer.position.distance_to(waypoint)
+
+	var skill := RaceSettings.ai_skill_multiplier()
+	var skill_progress := clampf((skill - 0.76) / 0.44, 0.0, 1.0)
+	var next_waypoint: Vector2 = AI_WAYPOINTS[(waypoint_index + 1) % AI_WAYPOINTS.size()]
+	var anticipation_distance := lerpf(38.0, 68.0, skill_progress)
+	var curve_progress := clampf(1.0 - distance_to_waypoint / anticipation_distance, 0.0, 1.0)
+	var target := waypoint.lerp(next_waypoint, curve_progress * 0.48)
+	var path_direction := waypoint.direction_to(next_waypoint)
+	var lane_offset: float = AI_LANE_BY_RACER.get(racer.name, 0.0)
+	var overtake_offset := _get_overtake_offset(racer, path_direction, skill_progress)
+	lane_offset = clampf(lane_offset + overtake_offset, -11.0, 11.0)
+	target += path_direction.rotated(PI * 0.5) * lane_offset
+
+	var avoidance := Vector2.ZERO
+	for other: CatRacer in [$Michi, $Nube, $Tigre, $Luna]:
+		if other == racer:
+			continue
+		var separation := racer.position.distance_to(other.position)
+		if separation > 0.1 and separation < 20.0:
+			avoidance += other.position.direction_to(racer.position) * (20.0 - separation) * 0.42
+	target += avoidance.limit_length(7.0)
 
 	var forward := Vector2.RIGHT.rotated(racer.rotation)
 	var desired_direction := racer.position.direction_to(target)
-	var steering := clampf(forward.cross(desired_direction) * 3.0, -1.0, 1.0)
+	var steering := clampf(forward.cross(desired_direction) * lerpf(2.2, 3.4, skill / 1.2), -1.0, 1.0)
 	var angle_error := absf(forward.angle_to(desired_direction))
+	var speed_ratio := absf(racer.drive_speed) / maxf(1.0, racer.max_forward_speed)
+	var accelerate := 1.0
+	var brake := 0.0
+	if angle_error > 1.1:
+		accelerate = 0.18
+		brake = 1.0 if speed_ratio > lerpf(0.34, 0.48, skill / 1.2) else 0.0
+	elif angle_error > 0.62:
+		accelerate = 0.5
+		brake = 0.35 if speed_ratio > lerpf(0.56, 0.72, skill / 1.2) else 0.0
+	elif not is_zero_approx(overtake_offset) and speed_ratio < 0.9:
+		# A clean straight lets the rival commit to the passing lane.
+		accelerate = 1.0
 	return {
-		"accelerate": 1.0 if angle_error < 1.45 else 0.28,
-		"brake": 1.0 if angle_error > 2.15 else 0.0,
+		"accelerate": accelerate,
+		"brake": brake,
 		"steer": steering,
 	}
+
+
+func _get_overtake_offset(racer: CatRacer, path_direction: Vector2, skill_progress: float) -> float:
+	var overtake_range := lerpf(18.0, 34.0, skill_progress)
+	var closest_distance := INF
+	for other: CatRacer in [$Michi, $Nube, $Tigre, $Luna]:
+		if other == racer:
+			continue
+		var relative := other.position - racer.position
+		var forward_distance := path_direction.dot(relative)
+		var lateral_distance := absf(path_direction.cross(relative))
+		if forward_distance > 2.0 and forward_distance < overtake_range and lateral_distance < 11.0:
+			closest_distance = minf(closest_distance, forward_distance)
+	if is_inf(closest_distance):
+		return 0.0
+	# Each rival has a stable preferred side, avoiding left/right indecision.
+	var side := -1.0 if racer.get_instance_id() % 2 == 0 else 1.0
+	return side * lerpf(4.5, 8.0, skill_progress)
+
+
+func _update_ai_safety(delta: float) -> void:
+	for racer: CatRacer in [$Nube, $Tigre, $Luna]:
+		var safety: Dictionary = ai_safety_by_racer.get(racer.get_instance_id(), {"position": racer.position, "stuck_time": 0.0})
+		var moved := racer.position.distance_to(safety.position)
+		if race_manager.call("can_drive", racer) and absf(racer.drive_speed) > 22.0 and moved < 0.35:
+			safety.stuck_time += delta
+		else:
+			safety.stuck_time = 0.0
+		if safety.stuck_time > 0.65:
+			racer.start_recovery(0.44)
+			safety.stuck_time = 0.0
+		safety.position = racer.position
+		ai_safety_by_racer[racer.get_instance_id()] = safety
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -265,25 +357,13 @@ func _ensure_action(action: StringName, keycodes: Array[int]) -> void:
 
 func _draw() -> void:
 	# Kitchen countertop and blue placemat used as the first temporary race circuit.
-	draw_rect(Rect2(Vector2.ZERO, Vector2(320, 180)), Color("a76438"))
-	for wood_y in range(5, 180, 12):
-		draw_line(Vector2(0, wood_y), Vector2(320, wood_y), Color(0.35, 0.16, 0.08, 0.22), 1.0)
-	for wood_x in range(8, 320, 42):
-		draw_line(Vector2(wood_x, 0), Vector2(wood_x - 12, 180), Color(0.94, 0.68, 0.37, 0.12), 1.0)
+	draw_texture_rect_region(KitchenArt, Rect2(Vector2.ZERO, Vector2(320, 180)), Rect2(40, 54, 940, 440))
 	draw_rect(Rect2(Vector2(12, 12), Vector2(296, 156)), Color("375777"))
 	draw_rect(Rect2(Vector2(17, 17), Vector2(286, 146)), Color("203b59"))
 	for y in range(28, 152, 16):
 		draw_circle(Vector2(36, y), 1.3, Color("bad5dc"))
 		draw_circle(Vector2(286, y), 1.3, Color("bad5dc"))
-	# Cutting board in the centre of the placemat.
-	draw_rect(Rect2(Vector2(153, 67), Vector2(22, 56)), Color("b8783f"))
-	draw_rect(Rect2(Vector2(156, 70), Vector2(16, 50)), Color("efc26c"), false, 1.0)
-	draw_circle(Vector2(220, 87), 18.0, Color("20242b"))
-	draw_circle(Vector2(220, 87), 14.0, Color("3c434d"))
-	draw_line(Vector2(231, 98), Vector2(251, 118), Color("20242b"), 6.0, true)
-	draw_circle(Vector2(106, 94), 12.0, Color("f3e7c4"))
-	draw_circle(Vector2(106, 94), 8.0, Color("6b3f28"))
-	draw_arc(Vector2(117, 94), 6.0, -1.3, 1.3, 8, Color("f3e7c4"), 3.0, true)
+	# Board, pan and mug are rendered by their pixel-art Sprite2D children.
 	# Fork decoration; it is intentionally non-blocking in this first course.
 	draw_line(Vector2(42, 57), Vector2(77, 57), Color("d9e8ed"), 2.0)
 	for tine_y in range(52, 63, 4):

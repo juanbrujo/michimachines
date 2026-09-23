@@ -47,7 +47,7 @@
 - [x] Probar el control con teclado en un dispositivo real.
 - [x] Añadir soporte de mando: stick izquierdo para girar, A/RB para acelerar, B/LB para frenar.
 - [~] Probar mando y touch en dispositivos reales.
-- [~] Ajustar parámetros de manejo hasta que se sienta arcade a 60 FPS.
+- [~] Ajustar parámetros de manejo hasta que se sienta arcade a 60 FPS; velocidad y respuesta reequilibradas, falta prueba manual.
 - [ ] Validar que no hay atascos ni temblores al chocar y recuperarse.
 
 ## Fase 2 — Carrera mínima jugable
@@ -63,17 +63,20 @@
 - [x] Guardar récord local de vuelta completa por michi.
 - [x] Añadir menú temporal con acceso a carrera rápida y resumen de controles.
 - [x] Añadir selector de ritmo tranquilo, normal y rápido para los rivales.
+- [x] Añadir selección de michi con estadísticas de velocidad, curvas e impacto: Ñau, Cajú, Romeo y Osama.
 - [ ] Validar una carrera completa de tres vueltas contra tres rivales.
 
 ## Fase 3 — Vertical slice pixel-art
 
 - [~] Construir infraestructura de superficies y una temática temporal de cocina.
 - [~] Añadir utilería de cocina y obstáculos físicos a la primera pista.
+- [~] Integrar arte de cocina, obstáculos, poderes y HUD de carrera entregado; faltan tiles modulares, podio y ajuste visual fino.
 - [x] Añadir cámara de persecución suave que concentra la vista en Michi y la ruta cercana.
 - [x] Añadir pickups automáticos: rapidez temporal, terremoto contra rivales y aceite resbaladizo; disponibles para los cuatro michis.
+- [x] Garantizar un pickup visible al inicio de carrera y evitar que se consuma durante la cuenta regresiva.
 - [ ] Diseñar una pista original completa, por ejemplo una cocina gigante.
-- [ ] Crear sprites temporales de cuatro gatos, superficies, obstáculos y HUD.
-- [ ] Mejorar IA con anticipación de curvas, recuperación y adelantamientos; entonces añadir dificultades fácil, normal y difícil reales.
+- [~] Crear sprites temporales de cuatro gatos, superficies, obstáculos y HUD; los gatos, la utilería y el HUD principal ya usan arte entregado.
+- [~] Mejorar IA: anticipación de curvas, frenado, recuperación y carril de adelantamiento implementados; faltan pruebas manuales por dificultad.
 - [ ] Añadir polvo, derrape, choques, música temporal y efectos de sonido.
 - [ ] Validar una partida completa en escritorio y Safari de iPhone.
 

@@ -5,15 +5,15 @@ extends CharacterBody2D
 ## so final sprites and per-cat stats can be added without changing race systems.
 
 @export_category("Handling")
-@export var max_forward_speed := 220.0
+@export var max_forward_speed := 178.0
 @export var max_reverse_speed := 72.0
-@export var acceleration := 340.0
-@export var braking := 390.0
+@export var acceleration := 285.0
+@export var braking := 360.0
 @export var rolling_drag := 75.0
-@export var turn_rate := 5.2
-@export var traction := 16.0
-@export var collision_bounce := 0.28
-@export_range(0.0, 1.0) var collision_speed_loss := 0.68
+@export var turn_rate := 4.7
+@export var traction := 18.0
+@export var collision_bounce := 0.12
+@export_range(0.0, 1.0) var collision_speed_loss := 0.82
 
 @export_category("Appearance")
 @export var fur_color := Color("f2a53a")
@@ -24,6 +24,8 @@ extends CharacterBody2D
 
 var drive_speed := 0.0
 var last_impact := 0.0
+var impact_push_time := 0.0
+var impact_normal := Vector2.ZERO
 var tail_time := 0.0
 var recovery_time := 0.0
 var recovery_turn := 1.0
@@ -104,6 +106,7 @@ func _physics_process(delta: float) -> void:
 	tail_time += delta
 	boost_time = maxf(0.0, boost_time - delta)
 	stun_time = maxf(0.0, stun_time - delta)
+	impact_push_time = maxf(0.0, impact_push_time - delta)
 	var controls := _read_controls()
 	if stun_time > 0.0:
 		drive_speed = move_toward(drive_speed, 0.0, braking * delta)
@@ -119,6 +122,11 @@ func _physics_process(delta: float) -> void:
 
 	var forward := Vector2.RIGHT.rotated(rotation)
 	var desired_velocity := forward * drive_speed
+	# A tiny outward impulse avoids the common CharacterBody2D case where two
+	# circular racers (or a racer and a prop) keep pressing into each other.
+	# Input remains active, so the player can immediately steer away.
+	if impact_push_time > 0.0:
+		desired_velocity += impact_normal * 118.0
 	velocity = velocity.lerp(desired_velocity, minf(1.0, traction * surface_traction_multiplier * delta))
 	move_and_slide()
 	_resolve_impacts()
@@ -160,11 +168,24 @@ func _resolve_impacts() -> void:
 	if collision == null:
 		return
 	last_impact = minf(1.0, absf(drive_speed) / max_forward_speed)
-	velocity = velocity.bounce(collision.get_normal()) * collision_bounce
+	var normal := collision.get_normal()
+	# Nudge apart once per impact. This is deliberately small: it corrects the
+	# overlap left by slide motion without looking like a teleport.
+	if impact_push_time <= 0.0:
+		impact_normal = normal
+		impact_push_time = 0.11
+		global_position += normal * 1.15
+	velocity = velocity.slide(normal) * collision_bounce + normal * 74.0
 	drive_speed *= collision_speed_loss
-	if ai_controlled:
-		recovery_time = 0.42
-		recovery_turn = -1.0 if get_instance_id() % 2 == 0 else 1.0
+	if ai_controlled and collision.get_collider() is StaticBody2D:
+		start_recovery(0.32)
+
+
+func start_recovery(duration: float = 0.42) -> void:
+	if not ai_controlled or victory_time >= 0.0:
+		return
+	recovery_time = maxf(recovery_time, duration)
+	recovery_turn = -1.0 if get_instance_id() % 2 == 0 else 1.0
 
 
 func set_surface(new_surface_id: int, new_surface_name: String, new_speed_multiplier: float, new_traction_multiplier: float) -> void:

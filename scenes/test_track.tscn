@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scripts/test_track.gd" id="1_track"]
 [ext_resource type="Script" path="res://scripts/cat_racer.gd" id="2_cat"]
@@ -6,6 +6,12 @@
 [ext_resource type="Script" path="res://scripts/track_surface.gd" id="4_surface"]
 [ext_resource type="Script" path="res://scripts/power_pickup.gd" id="5_power"]
 [ext_resource type="Texture2D" path="res://assets/ui/logo.png" id="6_logo"]
+[ext_resource type="Texture2D" path="res://assets/sprites/pan.png" id="7_pan"]
+[ext_resource type="Texture2D" path="res://assets/sprites/mug.png" id="8_mug"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cutting_board.png" id="9_board"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_speed.png" id="10_hud_speed"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_lap.png" id="11_hud_lap"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_timer.png" id="12_hud_timer"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShapeTopBottom"]
 size = Vector2(320, 14)
@@ -65,6 +71,9 @@ content_margin_top = 3.0
 content_margin_right = 5.0
 content_margin_bottom = 3.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxTransparent"]
+bg_color = Color(0, 0, 0, 0)
+
 [node name="TestTrack" type="Node2D"]
 script = ExtResource("1_track")
 
@@ -100,6 +109,12 @@ position = Vector2(164, 95)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TrackWalls/CardboardBox"]
 shape = SubResource("RectangleShapeObstacle")
 
+[node name="BoardSprite" type="Sprite2D" parent="TrackWalls/CardboardBox"]
+texture_filter = 1
+rotation = 1.5708
+texture = ExtResource("9_board")
+scale = Vector2(0.42, 0.42)
+
 [node name="KitchenProps" type="Node2D" parent="."]
 
 [node name="FryingPan" type="StaticBody2D" parent="KitchenProps"]
@@ -108,11 +123,21 @@ position = Vector2(220, 87)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="KitchenProps/FryingPan"]
 shape = SubResource("PanShape")
 
+[node name="PanSprite" type="Sprite2D" parent="KitchenProps/FryingPan"]
+texture_filter = 1
+texture = ExtResource("7_pan")
+scale = Vector2(0.34, 0.34)
+
 [node name="CoffeeMug" type="StaticBody2D" parent="KitchenProps"]
 position = Vector2(106, 94)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="KitchenProps/CoffeeMug"]
 shape = SubResource("MugShape")
+
+[node name="MugSprite" type="Sprite2D" parent="KitchenProps/CoffeeMug"]
+texture_filter = 1
+texture = ExtResource("8_mug")
+scale = Vector2(0.25, 0.25)
 
 [node name="Michi" type="CharacterBody2D" parent="."]
 position = Vector2(74, 45)
@@ -142,9 +167,9 @@ fur_color = Color(0.48, 0.72, 0.95, 1)
 accent_color = Color(0.88, 0.96, 1, 1)
 racer_name = "Nube"
 ai_controlled = true
-max_forward_speed = 150.0
 max_reverse_speed = 58.0
-acceleration = 250.0
+max_forward_speed = 165.0
+acceleration = 270.0
 braking = 320.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Nube"]
@@ -157,9 +182,9 @@ fur_color = Color(0.94, 0.48, 0.25, 1)
 accent_color = Color(1, 0.84, 0.55, 1)
 racer_name = "Tigre"
 ai_controlled = true
-max_forward_speed = 150.0
 max_reverse_speed = 58.0
-acceleration = 250.0
+max_forward_speed = 165.0
+acceleration = 270.0
 braking = 320.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Tigre"]
@@ -172,9 +197,9 @@ fur_color = Color(0.68, 0.48, 0.9, 1)
 accent_color = Color(0.94, 0.87, 1, 1)
 racer_name = "Luna"
 ai_controlled = true
-max_forward_speed = 150.0
 max_reverse_speed = 58.0
-acceleration = 250.0
+max_forward_speed = 165.0
+acceleration = 270.0
 braking = 320.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Luna"]
@@ -223,8 +248,7 @@ shape = SubResource("CrumbsShape")
 position = Vector2(190, 43)
 script = ExtResource("5_power")
 power_type = "speed"
-respawn_seconds = 26.0
-initial_delay = 5.0
+respawn_seconds = 32.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PowerPickups/SpeedPickup"]
 shape = SubResource("PowerShape")
@@ -233,8 +257,8 @@ shape = SubResource("PowerShape")
 position = Vector2(275, 121)
 script = ExtResource("5_power")
 power_type = "quake"
-respawn_seconds = 30.0
-initial_delay = 18.0
+respawn_seconds = 38.0
+initial_delay = 12.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PowerPickups/QuakePickup"]
 shape = SubResource("PowerShape")
@@ -243,8 +267,8 @@ shape = SubResource("PowerShape")
 position = Vector2(78, 145)
 script = ExtResource("5_power")
 power_type = "oil"
-respawn_seconds = 28.0
-initial_delay = 32.0
+respawn_seconds = 42.0
+initial_delay = 24.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PowerPickups/OilPickup"]
 shape = SubResource("PowerShape")
@@ -311,33 +335,73 @@ expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 
+[node name="SpeedArt" type="TextureRect" parent="HUD"]
+z_index = -1
+offset_left = 224.0
+offset_top = 10.0
+offset_right = 308.0
+offset_bottom = 32.0
+texture_filter = 1
+texture = ExtResource("10_hud_speed")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
 [node name="SpeedPanel" type="PanelContainer" parent="HUD"]
 offset_left = 225.0
 offset_top = 11.0
 offset_right = 308.0
 offset_bottom = 33.0
-theme_override_styles/panel = SubResource("StyleBoxHud")
+theme_override_styles/panel = SubResource("StyleBoxTransparent")
 
 [node name="SpeedLabel" type="Label" parent="HUD/SpeedPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.929412, 0.984314, 0.819608, 1)
+theme_override_colors/font_outline_color = Color(0.0156863, 0.0431373, 0.0862745, 1)
+theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 8
 text = "000 MIAU"
 horizontal_alignment = 1
+
+[node name="LapArt" type="TextureRect" parent="HUD"]
+z_index = -1
+offset_left = 197.0
+offset_top = 37.0
+offset_right = 308.0
+offset_bottom = 59.0
+texture_filter = 1
+texture = ExtResource("11_hud_lap")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
 
 [node name="RacePanel" type="PanelContainer" parent="HUD"]
 offset_left = 197.0
 offset_top = 37.0
 offset_right = 308.0
 offset_bottom = 59.0
-theme_override_styles/panel = SubResource("StyleBoxHud")
+theme_override_styles/panel = SubResource("StyleBoxTransparent")
 
 [node name="RaceLabel" type="Label" parent="HUD/RacePanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.929412, 0.984314, 0.819608, 1)
+theme_override_colors/font_outline_color = Color(0.0156863, 0.0431373, 0.0862745, 1)
+theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
 text = "Vuelta 1/3 · 1.º"
 horizontal_alignment = 1
+
+[node name="TimerArt" type="TextureRect" parent="HUD"]
+z_index = -1
+offset_left = 108.0
+offset_top = 10.0
+offset_right = 212.0
+offset_bottom = 36.0
+texture_filter = 1
+texture = ExtResource("12_hud_timer")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
 
 [node name="StartLabel" type="Label" parent="HUD"]
 offset_left = 108.0
