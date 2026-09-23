@@ -5,7 +5,7 @@
 - [x] Concepto definido: carreras arcade cenitales protagonizadas por gatos.
 - [x] Plataformas priorizadas: web, macOS y iPhone/iPad.
 - [x] Dirección visual: 2D pixel-art; efectos avanzados después del MVP.
-- [~] Fase actual: **Fase 2 — Carrera mínima jugable**. El flujo ya comienza desde un menú temporal; falta validación manual de una carrera completa y controles móviles.
+- [~] Fase actual: **Fase 3 — Vertical slice pixel-art**. La carrera completa ya funciona con selección de michi, rivales, poderes, HUD y arte inicial; quedan pulido, audio, pruebas móviles y exportación.
 
 ## Visión
 
@@ -30,9 +30,9 @@
 - [x] Configurar viewport 640×360, escalado pixel-perfect y física a 60 FPS.
 - [x] Definir acciones abstractas de teclado y adaptador touch temporal.
 - [ ] Configurar plantillas y presets de exportación para web, macOS e iOS.
-- [ ] Crear guía visual temporal y lista de recursos originales.
-- [ ] Documentar primera pista y cuatro gatos iniciales.
-- [~] Personalizar corredores con los gatos reales: Ñau definido como jugador atigrado café/anaranjado y crema; faltan los tres rivales.
+- [x] Crear guía visual temporal y lista de recursos originales (`README.md` y `prompts.md`).
+- [x] Documentar primera pista y cuatro gatos iniciales.
+- [x] Personalizar corredores con los gatos reales: Ñau, Cajú, Romeo y Osama, con estadísticas propias.
 - [ ] Confirmar que el proyecto abre y exporta en navegador/macOS.
 
 ## Fase 1 — Prototipo de conducción
@@ -47,14 +47,14 @@
 - [x] Probar el control con teclado en un dispositivo real.
 - [x] Añadir soporte de mando: stick izquierdo para girar, A/RB para acelerar, B/LB para frenar.
 - [~] Probar mando y touch en dispositivos reales.
-- [~] Ajustar parámetros de manejo hasta que se sienta arcade a 60 FPS; velocidad y respuesta reequilibradas, falta prueba manual.
+- [x] Ajustar parámetros de manejo hasta que se sienta arcade a 60 FPS; velocidad, respuesta, curvas y recuperación reequilibradas tras pruebas manuales.
 - [ ] Validar que no hay atascos ni temblores al chocar y recuperarse.
 
 ## Fase 2 — Carrera mínima jugable
 
 - [x] Crear checkpoints, vueltas y posiciones en una pista temporal.
 - [x] Añadir salida con cuenta regresiva, cronómetro y condición de meta visible.
-- [~] Añadir reaparición de seguridad manual desde el último checkpoint (`Backspace`).
+- [x] Añadir reaparición de seguridad manual desde el último checkpoint (`Backspace`).
 - [x] Añadir tres gatos IA con waypoints y conducción normal.
 - [x] Añadir HUD temporal de vuelta, posición y velocidad.
 - [x] Añadir resultado de meta e inicio rápido de una nueva carrera (`R`).
@@ -64,20 +64,20 @@
 - [x] Añadir menú temporal con acceso a carrera rápida y resumen de controles.
 - [x] Añadir selector de ritmo tranquilo, normal y rápido para los rivales.
 - [x] Añadir selección de michi con estadísticas de velocidad, curvas e impacto: Ñau, Cajú, Romeo y Osama.
-- [ ] Validar una carrera completa de tres vueltas contra tres rivales.
+- [x] Validar una carrera completa de tres vueltas contra tres rivales en escritorio.
 
 ## Fase 3 — Vertical slice pixel-art
 
-- [~] Construir infraestructura de superficies y una temática temporal de cocina.
-- [~] Añadir utilería de cocina y obstáculos físicos a la primera pista.
+- [x] Construir infraestructura de superficies y una temática temporal de cocina.
+- [x] Añadir utilería de cocina y obstáculos físicos a la primera pista.
 - [~] Integrar arte de cocina, obstáculos, poderes y HUD de carrera entregado; faltan tiles modulares, podio y ajuste visual fino.
 - [x] Añadir cámara de persecución suave que concentra la vista en Michi y la ruta cercana.
 - [x] Añadir pickups automáticos: rapidez temporal, terremoto contra rivales y aceite resbaladizo; disponibles para los cuatro michis.
 - [x] Garantizar un pickup visible al inicio de carrera y evitar que se consuma durante la cuenta regresiva.
 - [ ] Diseñar una pista original completa, por ejemplo una cocina gigante.
-- [~] Crear sprites temporales de cuatro gatos, superficies, obstáculos y HUD; los gatos, la utilería y el HUD principal ya usan arte entregado.
+- [x] Crear sprites temporales de cuatro gatos, superficies, obstáculos y HUD; los gatos, la utilería y el HUD principal ya usan arte entregado.
 - [~] Mejorar IA: anticipación de curvas, frenado, recuperación y carril de adelantamiento implementados; faltan pruebas manuales por dificultad.
-- [ ] Añadir polvo, derrape, choques, música temporal y efectos de sonido.
+- [~] Añadir polvo, derrape, choques, música temporal y efectos de sonido; ya hay respuesta y destellos de impacto, faltan efectos visuales de derrape, música y sonido.
 - [ ] Validar una partida completa en escritorio y Safari de iPhone.
 
 ## Fase 4 — Móvil y distribución
@@ -97,9 +97,9 @@
 
 ## Alcance del MVP
 
-- [ ] Una pista original.
-- [ ] Cuatro gatos: uno humano y tres IA.
-- [ ] Carrera de tres vueltas con fácil/normal/difícil.
-- [ ] Teclado, mando y touch.
-- [~] HUD, pausa, resultados y récord local; falta sonido básico.
+- [~] Una pista original de cocina: recorrido jugable construido; falta convertirlo en pista final con tiles modulares.
+- [x] Cuatro gatos: uno humano y tres IA.
+- [x] Carrera de tres vueltas con fácil/normal/difícil.
+- [x] Teclado, mando y touch implementados.
+- [x] HUD, pausa, resultados y récord local.
 - [ ] Export web y pruebas macOS/iPhone.
